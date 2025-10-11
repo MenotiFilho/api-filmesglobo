@@ -7,21 +7,22 @@ spring.h2.console.enabled=true
 spring.h2.console.path=/h2-console
 
 # --- DATASOURCE CONFIGURATION ---
-# URL de conex„o para um banco em memÛria chamado 'acervodb'
+# URL de conex√£o para um banco em mem√≥ria chamado 'acervodb'
 spring.datasource.url=jdbc:h2:mem:acervodb
-# Driver do H2 (o Spring geralmente detecta isso sozinho, mas È bom ser explÌcito)
+# Driver do H2 (o Spring geralmente detecta isso sozinho, mas √© bom ser expl√≠cito)
 spring.datasource.driverClassName=org.h2.Driver
-# Usu·rio e senha padr„o para o H2
+# Usu√°rio e senha padr√£o para o H2
 spring.datasource.username=sa
 spring.datasource.password=
 
 # --- JPA/HIBERNATE CONFIGURATION ---
-# DDL-auto 'create-drop': cria as tabelas na inicializaÁ„o e as apaga ao final. Perfeito para H2.
+# DDL-auto 'create-drop': cria as tabelas na inicializa√ß√£o e as apaga ao final. Perfeito para H2.
 spring.jpa.hibernate.ddl-auto=create-drop
-# Mostra o SQL que o Hibernate est· gerando no console. ”timo para aprender!
+# Mostra o SQL que o Hibernate est√° gerando no console. √ìtimo para aprender!
 spring.jpa.show-sql=true
-# Formata o SQL mostrado no console para ficar mais legÌvel.
+# Formata o SQL mostrado no console para ficar mais leg√≠vel.
 spring.jpa.properties.hibernate.format_sql=true
 
-# Chave de seguranÁa para proteger o endpoint de carga
-api.security.key=uma-chave-secreta-muito-segura-12345
+# Todo: change apiKey
+# Chave de seguran√ßa para proteger o endpoint de carga
+api.security.key=CHAVE_SECRETA_AQUI
