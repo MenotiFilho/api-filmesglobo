@@ -2,6 +2,7 @@ package br.com.acervofilmesglobo.api_filmesglobo.service;
 
 import br.com.acervofilmesglobo.api_filmesglobo.dto.ScreeningLoadDTO;
 import br.com.acervofilmesglobo.api_filmesglobo.model.Movie;
+import br.com.acervofilmesglobo.api_filmesglobo.model.Screening;
 import br.com.acervofilmesglobo.api_filmesglobo.repository.MovieRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,5 +60,66 @@ public class MovieServiceTest {
     @DisplayName("Filme já existe e so deve adicionar uma nova exibição")
     void processScreeningLoad_whenMovieExists_shouldCreateAddANewScreening() {
 
+        Movie movie = new Movie();
+        movie.setOriginalTitle("Back to the Future");
+        movie.setPortugueseTitle("De Volta para o Futuro");
+        movie.setReleaseYear(1985);
+        Screening screening = new Screening();
+        screening.setScreeningDate(LocalDate.of(2014, 10, 26));
+        screening.setMovie(movie);
+        movie.getScreeningHistory().add(screening);
+
+        ScreeningLoadDTO dto = new ScreeningLoadDTO();
+        dto.setOriginalTitle("Back to the Future");
+        dto.setPortugueseTitle("De Volta para o Futuro");
+        dto.setReleaseYear(1985);
+        dto.setScreeningDate(LocalDate.of(2025, 10, 11));
+
+        when(movieRepository.findByOriginalTitle("Back to the Future")).thenReturn(Optional.of(movie));
+
+        movieService.processScreeningLoad(List.of(dto));
+
+        ArgumentCaptor<Movie> movieCaptor = ArgumentCaptor.forClass(Movie.class);
+
+        verify(movieRepository).save(movieCaptor.capture());
+
+        Movie savedMovie = movieCaptor.getValue();
+
+        assertThat(savedMovie.getOriginalTitle()).isEqualTo("Back to the Future");
+        assertThat(savedMovie.getScreeningHistory()).hasSize(2);
+        assertThat(savedMovie.getScreeningHistory()).extracting(Screening::getScreeningDate).contains(LocalDate.of(2025, 10, 11));
     }
+    @Test
+    @DisplayName("Filme e exibicao ja existem, nada deve ser adicionado")
+    void processScreeningLoad_whenMovieAndScreeningDateExists_shouldNotCreateAMovieOrAddANewScreening() {
+
+        Movie movie = new Movie();
+        movie.setOriginalTitle("Back to the Future");
+        movie.setPortugueseTitle("De Volta para o Futuro");
+        movie.setReleaseYear(1985);
+        Screening screening = new Screening();
+        screening.setScreeningDate(LocalDate.of(2014, 10, 26));
+        screening.setMovie(movie);
+        movie.getScreeningHistory().add(screening);
+
+        ScreeningLoadDTO dto = new ScreeningLoadDTO();
+        dto.setOriginalTitle("Back to the Future");
+        dto.setPortugueseTitle("De Volta para o Futuro");
+        dto.setReleaseYear(1985);
+        dto.setScreeningDate(LocalDate.of(2014, 10, 26));
+
+        when(movieRepository.findByOriginalTitle("Back to the Future")).thenReturn(Optional.of(movie));
+
+        movieService.processScreeningLoad(List.of(dto));
+
+        ArgumentCaptor<Movie> movieCaptor = ArgumentCaptor.forClass(Movie.class);
+
+        verify(movieRepository).save(movieCaptor.capture());
+
+        Movie savedMovie = movieCaptor.getValue();
+
+        assertThat(savedMovie.getOriginalTitle()).isEqualTo("Back to the Future");
+        assertThat(savedMovie.getScreeningHistory()).hasSize(1);
+    }
+
 }
