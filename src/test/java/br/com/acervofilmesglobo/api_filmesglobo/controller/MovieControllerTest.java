@@ -44,6 +44,7 @@ public class MovieControllerTest {
         dto.setPortugueseTitle("A Origem");
         dto.setReleaseYear(2010);
         dto.setScreeningDate(LocalDate.of(2025, 10, 11));
+        dto.setSession("Tela Quente");
 
         String requestBody = objectMapper.writeValueAsString(List.of(dto));
 
@@ -51,13 +52,54 @@ public class MovieControllerTest {
 
         mockMvc.perform(post("/api/movies/load")
                         .header("X-API-KEY", apiKey)
-                        .contentType(MediaType.APPLICATION_JSON) // Set the content type of the request
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk());
 
         verify(movieService).processScreeningLoad(any());
     }
 
+    @Test
+    @DisplayName("Deve retornar status 401 Unauthorized quando a chave de API é inválida")
+    void loadScreenings_withInvalidApiKey_shouldReturnUnauthorized() throws Exception {
+        ScreeningLoadDTO dto = new ScreeningLoadDTO();
+        dto.setOriginalTitle("Inception");
+        dto.setPortugueseTitle("A Origem");
+        dto.setReleaseYear(2010);
+        dto.setScreeningDate(LocalDate.of(2025, 10, 11));
+        dto.setSession("Tela Quente");
+        String requestBody = objectMapper.writeValueAsString(List.of(dto));
 
-    // Todo: teste apikey invalida e teste body invalido
+        mockMvc.perform(post("/api/movies/load")
+                        .header("X-API-KEY", "chave-errada")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isUnauthorized());
+
+        verify(movieService, never()).processScreeningLoad(any());
+    }
+
+    @Test
+    @DisplayName("Deve retornar status 400 Bad Request quando o corpo da requisição é inválido")
+    void loadScreenings_withInvalidBody_shouldReturnBadRequest() throws Exception {
+        String requestBody = """
+                [
+                    {
+                        "originalTitle": "Inception",
+                        "portugueseTitle": "A Origem",
+                        "releaseYear": 2010,
+                        "screeningDate": "2025-10-11",
+                        "session": ""
+                    }
+                ]
+                """;
+
+        mockMvc.perform(post("/api/movies/load")
+                        .header("X-API-KEY", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest());
+
+        verify(movieService, never()).processScreeningLoad(any());
+    }
 }

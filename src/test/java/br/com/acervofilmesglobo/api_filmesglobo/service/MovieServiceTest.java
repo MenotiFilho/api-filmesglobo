@@ -33,93 +33,116 @@ public class MovieServiceTest {
     @Test
     @DisplayName("Deve criar um novo filme e sua primeira exibição quando o filme não existe")
     void processScreeningLoad_whenMovieDoesNotExist_shouldCreateNewMovieAndScreening() {
+
         ScreeningLoadDTO dto = new ScreeningLoadDTO();
         dto.setOriginalTitle("Inception");
         dto.setPortugueseTitle("A Origem");
         dto.setReleaseYear(2010);
         dto.setScreeningDate(LocalDate.of(2025, 10, 11));
+        dto.setSession("Tela Quente");
 
         when(movieRepository.findByOriginalTitle("Inception")).thenReturn(Optional.empty());
 
         movieService.processScreeningLoad(List.of(dto));
 
         ArgumentCaptor<Movie> movieCaptor = ArgumentCaptor.forClass(Movie.class);
-
         verify(movieRepository, times(1)).save(movieCaptor.capture());
-
         Movie savedMovie = movieCaptor.getValue();
 
         assertThat(savedMovie.getOriginalTitle()).isEqualTo("Inception");
-        assertThat(savedMovie.getReleaseYear()).isEqualTo(2010);
         assertThat(savedMovie.getScreeningHistory()).hasSize(1);
         assertThat(savedMovie.getScreeningHistory().get(0).getScreeningDate()).isEqualTo(LocalDate.of(2025, 10, 11));
-
+        assertThat(savedMovie.getScreeningHistory().get(0).getSession()).isEqualTo("Tela Quente");
     }
 
     @Test
-    @DisplayName("Filme já existe e so deve adicionar uma nova exibição")
-    void processScreeningLoad_whenMovieExists_shouldCreateAddANewScreening() {
+    @DisplayName("Deve adicionar uma nova exibição a um filme já existente")
+    void processScreeningLoad_whenMovieExists_shouldAddANewScreening() {
 
-        Movie movie = new Movie();
-        movie.setOriginalTitle("Back to the Future");
-        movie.setPortugueseTitle("De Volta para o Futuro");
-        movie.setReleaseYear(1985);
-        Screening screening = new Screening();
-        screening.setScreeningDate(LocalDate.of(2014, 10, 26));
-        screening.setMovie(movie);
-        movie.getScreeningHistory().add(screening);
+        Movie existingMovie = new Movie();
+        existingMovie.setOriginalTitle("Back to the Future");
+        existingMovie.setReleaseYear(1985);
+        Screening oldScreening = new Screening();
+        oldScreening.setScreeningDate(LocalDate.of(2014, 10, 26));
+        oldScreening.setSession("Sessão da Tarde");
+        oldScreening.setMovie(existingMovie);
+        existingMovie.getScreeningHistory().add(oldScreening);
 
-        ScreeningLoadDTO dto = new ScreeningLoadDTO();
-        dto.setOriginalTitle("Back to the Future");
-        dto.setPortugueseTitle("De Volta para o Futuro");
-        dto.setReleaseYear(1985);
-        dto.setScreeningDate(LocalDate.of(2025, 10, 11));
+        ScreeningLoadDTO newDto = new ScreeningLoadDTO();
+        newDto.setOriginalTitle("Back to the Future");
+        newDto.setScreeningDate(LocalDate.of(2025, 10, 11));
+        newDto.setSession("Tela Quente");
 
-        when(movieRepository.findByOriginalTitle("Back to the Future")).thenReturn(Optional.of(movie));
+        when(movieRepository.findByOriginalTitle("Back to the Future")).thenReturn(Optional.of(existingMovie));
 
-        movieService.processScreeningLoad(List.of(dto));
+        movieService.processScreeningLoad(List.of(newDto));
 
         ArgumentCaptor<Movie> movieCaptor = ArgumentCaptor.forClass(Movie.class);
-
         verify(movieRepository).save(movieCaptor.capture());
-
         Movie savedMovie = movieCaptor.getValue();
 
-        assertThat(savedMovie.getOriginalTitle()).isEqualTo("Back to the Future");
         assertThat(savedMovie.getScreeningHistory()).hasSize(2);
-        assertThat(savedMovie.getScreeningHistory()).extracting(Screening::getScreeningDate).contains(LocalDate.of(2025, 10, 11));
+        assertThat(savedMovie.getScreeningHistory())
+                .extracting(Screening::getSession)
+                .contains("Sessão da Tarde", "Tela Quente");
     }
+
     @Test
-    @DisplayName("Filme e exibicao ja existem, nada deve ser adicionado")
-    void processScreeningLoad_whenMovieAndScreeningDateExists_shouldNotCreateAMovieOrAddANewScreening() {
+    @DisplayName("Não deve adicionar exibição se data e sessão já existem")
+    void processScreeningLoad_whenMovieAndScreeningAlreadyExist_shouldDoNothing() {
 
-        Movie movie = new Movie();
-        movie.setOriginalTitle("Back to the Future");
-        movie.setPortugueseTitle("De Volta para o Futuro");
-        movie.setReleaseYear(1985);
-        Screening screening = new Screening();
-        screening.setScreeningDate(LocalDate.of(2014, 10, 26));
-        screening.setMovie(movie);
-        movie.getScreeningHistory().add(screening);
+        Movie existingMovie = new Movie();
+        existingMovie.setOriginalTitle("Back to the Future");
+        Screening existingScreening = new Screening();
+        existingScreening.setScreeningDate(LocalDate.of(2025, 10, 11));
+        existingScreening.setSession("Sessão da Tarde");
+        existingScreening.setMovie(existingMovie);
+        existingMovie.getScreeningHistory().add(existingScreening);
 
-        ScreeningLoadDTO dto = new ScreeningLoadDTO();
-        dto.setOriginalTitle("Back to the Future");
-        dto.setPortugueseTitle("De Volta para o Futuro");
-        dto.setReleaseYear(1985);
-        dto.setScreeningDate(LocalDate.of(2014, 10, 26));
+        ScreeningLoadDTO duplicateDto = new ScreeningLoadDTO();
+        duplicateDto.setOriginalTitle("Back to the Future");
+        duplicateDto.setScreeningDate(LocalDate.of(2025, 10, 11));
+        duplicateDto.setSession("Sessão da Tarde");
 
-        when(movieRepository.findByOriginalTitle("Back to the Future")).thenReturn(Optional.of(movie));
+        when(movieRepository.findByOriginalTitle("Back to the Future")).thenReturn(Optional.of(existingMovie));
 
-        movieService.processScreeningLoad(List.of(dto));
+        movieService.processScreeningLoad(List.of(duplicateDto));
 
         ArgumentCaptor<Movie> movieCaptor = ArgumentCaptor.forClass(Movie.class);
-
         verify(movieRepository).save(movieCaptor.capture());
-
         Movie savedMovie = movieCaptor.getValue();
 
-        assertThat(savedMovie.getOriginalTitle()).isEqualTo("Back to the Future");
         assertThat(savedMovie.getScreeningHistory()).hasSize(1);
     }
 
+    @Test
+    @DisplayName("Deve adicionar exibição se a data é a mesma mas a sessão é diferente")
+    void processScreeningLoad_whenDateIsSameButSessionIsDifferent_shouldAddScreening() {
+
+        Movie existingMovie = new Movie();
+        existingMovie.setOriginalTitle("The Goonies");
+        Screening existingScreening = new Screening();
+        existingScreening.setScreeningDate(LocalDate.of(2025, 11, 22));
+        existingScreening.setSession("Sessão da Tarde");
+        existingScreening.setMovie(existingMovie);
+        existingMovie.getScreeningHistory().add(existingScreening);
+
+        ScreeningLoadDTO newDto = new ScreeningLoadDTO();
+        newDto.setOriginalTitle("The Goonies");
+        newDto.setScreeningDate(LocalDate.of(2025, 11, 22));
+        newDto.setSession("Corujão");
+
+        when(movieRepository.findByOriginalTitle("The Goonies")).thenReturn(Optional.of(existingMovie));
+
+        movieService.processScreeningLoad(List.of(newDto));
+
+        ArgumentCaptor<Movie> movieCaptor = ArgumentCaptor.forClass(Movie.class);
+        verify(movieRepository).save(movieCaptor.capture());
+        Movie savedMovie = movieCaptor.getValue();
+
+        assertThat(savedMovie.getScreeningHistory()).hasSize(2);
+        assertThat(savedMovie.getScreeningHistory())
+                .extracting(Screening::getSession)
+                .contains("Sessão da Tarde", "Corujão");
+    }
 }

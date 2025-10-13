@@ -26,4 +26,7 @@ public class ScreeningLoadDTO {
 
     @NotNull(message = "Data de exibição é obrigatória")
     private LocalDate screeningDate;
+
+    @NotBlank(message = "O nome da sessão não pode ser vazio")
+    private String session;
 }

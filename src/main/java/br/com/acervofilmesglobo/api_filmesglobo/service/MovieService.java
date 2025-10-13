@@ -27,11 +27,16 @@ public class MovieService {
             movie.setSummary(dto.getSummary());
             movie.setPosterUrl(dto.getPosterUrl());
 
-            boolean screeningExists = movie.getScreeningHistory().stream().anyMatch(screening -> screening.getScreeningDate().equals(dto.getScreeningDate()));
+            boolean screeningExists = movie.getScreeningHistory().stream()
+                    .anyMatch(screening ->
+                            screening.getScreeningDate().equals(dto.getScreeningDate()) &&
+                                    screening.getSession().equalsIgnoreCase(dto.getSession())
+                    );
 
-            if (!screeningExists){
+            if (!screeningExists) {
                 Screening newScreening = new Screening();
                 newScreening.setScreeningDate(dto.getScreeningDate());
+                newScreening.setSession(dto.getSession());
                 newScreening.setMovie(movie);
                 movie.getScreeningHistory().add(newScreening);
             }

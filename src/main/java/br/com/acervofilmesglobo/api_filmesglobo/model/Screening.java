@@ -17,6 +17,9 @@ public class Screening {
     @Column(nullable = false)
     private LocalDate screeningDate;
 
+    @Column(nullable = false)
+    private String session;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movie_id", nullable = false)
     private Movie movie;
