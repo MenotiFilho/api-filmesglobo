@@ -1,0 +1,51 @@
+meta {
+  name: Carregar Filmes
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/api/movies/load
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-API-KEY: uma-chave-secreta-muito-segura-12345
+}
+
+body:json {
+  [
+    {
+      "originalTitle": "Back to the Future",
+      "portugueseTitle": "De Volta para o Futuro",
+      "releaseYear": 1985,
+      "summary": "Um jovem viaja acidentalmente 30 anos no passado num DeLorean que viaja no tempo.",
+      "posterUrl": "https://exemplo.com/poster1.jpg",
+      "screeningDate": "2025-10-12",
+      "session": "Sessão da Tarde"
+    },
+    {
+      "originalTitle": "The Goonies",
+      "portugueseTitle": "Os Goonies",
+      "releaseYear": 1985,
+      "summary": "Um grupo de jovens descobre um mapa antigo e parte numa aventura para encontrar um tesouro pirata.",
+      "posterUrl": "https://exemplo.com/poster2.jpg",
+      "screeningDate": "2025-10-13",
+      "session": "Sessão da Tarde"
+    },
+    {
+      "originalTitle": "Inception",
+      "portugueseTitle": "A Origem",
+      "releaseYear": 2010,
+      "summary": "Um ladrão que rouba segredos corporativos através do uso da tecnologia de partilha de sonhos.",
+      "posterUrl": "https://exemplo.com/poster3.jpg",
+      "screeningDate": "2025-10-13",
+      "session": "Tela Quente"
+    }
+  ]
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,15 @@
+meta {
+  name: GET 1 FILME
+  type: http
+  seq: 3
+}
+
+get {
+  url: GET http://localhost:8080/api/movies/{id}/screenings
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}
