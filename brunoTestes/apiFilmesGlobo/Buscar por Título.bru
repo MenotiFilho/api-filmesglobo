@@ -1,0 +1,20 @@
+meta {
+  name: Buscar por Título
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:8080/api/movies/search?portugueseTitle=matrix
+  body: none
+  auth: inherit
+}
+
+params:query {
+  portugueseTitle: matrix
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
