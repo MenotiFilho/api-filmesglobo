@@ -221,4 +221,43 @@ public class MovieControllerTest {
                         .isInstanceOf(EntityNotFoundException.class) // Verifica o tipo
                         .hasMessage("Não foi encontrado nenhum filme com o ID " + nonExistentMovieId));
     }
+
+    @Test
+    @DisplayName("Deve retornar 200 OK e a página de filmes encontrados na busca por título")
+    void searchByPortugueseTitle_whenTitleExists_shouldReturnPageOfMovies() throws Exception {
+        MovieResponseDTO movieDto = new MovieResponseDTO();
+        movieDto.setIdMovie(1L);
+        movieDto.setPortugueseTitle("De Volta para o Futuro");
+
+        Page<MovieResponseDTO> moviePage = new PageImpl<>(List.of(movieDto));
+
+        String searchTerm = "futuro";
+
+        when(movieService.searchByPortugueseTitle(eq(searchTerm), any(Pageable.class))).thenReturn(moviePage);
+
+        mockMvc.perform(get("/api/movies/search")
+                        .param("portugueseTitle", searchTerm)
+                        .param("page", "0")
+                        .param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].portugueseTitle", is("De Volta para o Futuro")));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 200 OK e uma página vazia quando a busca por título não encontra resultados")
+    void searchByPortugueseTitle_whenTitleDoesNotExist_shouldReturnEmptyPage() throws Exception {
+
+        Page<MovieResponseDTO> emptyPage = Page.empty();
+
+        String searchTerm = "filme-inexistente-xyz";
+
+        when(movieService.searchByPortugueseTitle(eq(searchTerm), any(Pageable.class))).thenReturn(emptyPage);
+
+        mockMvc.perform(get("/api/movies/search")
+                        .param("portugueseTitle", searchTerm))
+                .andExpect(status().isOk()) // Uma busca sem resultados é um sucesso, não um erro! O status é 200 OK.
+                .andExpect(jsonPath("$.content", hasSize(0))) // A verificação principal: a lista de conteúdo deve ter 0 elementos.
+                .andExpect(jsonPath("$.totalElements").value(0)); // O número total de elementos deve ser 0.
+    }
 }

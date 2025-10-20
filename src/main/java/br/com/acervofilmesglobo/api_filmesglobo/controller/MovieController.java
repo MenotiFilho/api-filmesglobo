@@ -54,4 +54,9 @@ public class MovieController {
         MovieDetailDTO movieDetailDTO = movieService.findById(id);
         return ResponseEntity.ok(movieDetailDTO);
     }
+    @GetMapping("/search")
+    public ResponseEntity<Page<MovieResponseDTO>> searchByPortugueseTitle(@RequestParam String portugueseTitle, Pageable pageable){
+        Page<MovieResponseDTO> moviePage = movieService.searchByPortugueseTitle(portugueseTitle, pageable);
+        return ResponseEntity.ok(moviePage);
+    }
 }

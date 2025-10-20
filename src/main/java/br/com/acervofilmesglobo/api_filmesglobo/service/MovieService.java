@@ -79,4 +79,11 @@ public class MovieService {
 
         return new MovieDetailDTO(movie);
     }
+
+    @Transactional(readOnly = true)
+    public Page<MovieResponseDTO> searchByPortugueseTitle(String portugueseTitle, Pageable pageable) {
+        Page<Movie> moviePage  = movieRepository.findByPortugueseTitleContainingIgnoreCase(portugueseTitle, pageable);
+
+        return moviePage.map(MovieResponseDTO::new);
+    }
 }
