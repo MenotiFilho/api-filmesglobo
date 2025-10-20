@@ -8,7 +8,6 @@ import br.com.acervofilmesglobo.api_filmesglobo.model.Movie;
 import br.com.acervofilmesglobo.api_filmesglobo.model.Screening;
 import br.com.acervofilmesglobo.api_filmesglobo.repository.MovieRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,8 +19,11 @@ import java.util.stream.Collectors;
 @Service
 public class MovieService {
 
-    @Autowired
-    private MovieRepository movieRepository;
+    private final MovieRepository movieRepository;
+
+    public MovieService(MovieRepository movieRepository) {
+        this.movieRepository = movieRepository;
+    }
 
     @Transactional
     public void processScreeningLoad(List<ScreeningLoadDTO> screeningLoadDTOS) {
@@ -64,7 +66,7 @@ public class MovieService {
     @Transactional(readOnly = true)
     public List<ScreeningResponseDTO> findScreeningsByMovieId(Long movieId) {
         Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new EntityNotFoundException("Filme não encontrado ocm o ID: " + movieId));
+                .orElseThrow(() -> new EntityNotFoundException("Filme não encontrado com o ID: " + movieId));
 
         return movie.getScreeningHistory().stream()
                 .map(ScreeningResponseDTO::new)
@@ -75,7 +77,7 @@ public class MovieService {
     @Transactional(readOnly = true)
     public MovieDetailDTO findById(Long movieId){
         Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(()->new EntityNotFoundException("Filme não encontrado ocm o ID: " + movieId));
+                .orElseThrow(()->new EntityNotFoundException("Filme não encontrado com o ID: " + movieId));
 
         return new MovieDetailDTO(movie);
     }
