@@ -1,5 +1,6 @@
 package br.com.acervofilmesglobo.api_filmesglobo.controller;
 
+import br.com.acervofilmesglobo.api_filmesglobo.dto.MovieDetailDTO;
 import br.com.acervofilmesglobo.api_filmesglobo.dto.MovieResponseDTO;
 import br.com.acervofilmesglobo.api_filmesglobo.dto.ScreeningLoadDTO;
 import br.com.acervofilmesglobo.api_filmesglobo.service.MovieService;
@@ -29,6 +30,7 @@ import jakarta.persistence.EntityNotFoundException;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 @WebMvcTest(MovieController.class)
@@ -132,7 +134,7 @@ public class MovieControllerTest {
         // AÇÃO
         mockMvc.perform(get("/api/movies")
                         .param("page", "0")
-                        .param("size,", "1"))
+                        .param("size", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.totalPages").value(1))
@@ -174,5 +176,49 @@ public class MovieControllerTest {
 
         mockMvc.perform(get("/api/movies/{id}/screenings", nonExistentMovieId))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 200 OK e os detalhes do filme quando o filme existe")
+    void findMovieById_whenMovieExists_shouldReturnOkAndMovieDetails() throws Exception {
+
+        MovieDetailDTO movieDetail = new MovieDetailDTO();
+        movieDetail.setIdMovie(1L);
+        movieDetail.setOriginalTitle("The Matrix");
+        movieDetail.setPortugueseTitle("Matrix");
+        movieDetail.setReleaseYear(1999);
+        movieDetail.setScreeningsTotal(1);
+
+        ScreeningResponseDTO screening = new ScreeningResponseDTO();
+        screening.setPortugueseTitle("Matrix");
+        screening.setScreeningDate(LocalDate.of(2025, 10, 11));
+        screening.setSession("Tela Quente");
+        movieDetail.setScreeningHistory(List.of(screening));
+
+        Long movieId = 1L;
+
+        when(movieService.findById(movieId)).thenReturn(movieDetail);
+
+        mockMvc.perform(get("/api/movies/{id}", movieId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idMovie", is(1)))
+                .andExpect(jsonPath("$.portugueseTitle", is("Matrix")))
+                .andExpect(jsonPath("$.releaseYear", is(1999)))
+                .andExpect(jsonPath("$.screeningHistory[0].session", is("Tela Quente")));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 404 Not Found quando o ID do filme não existe")
+    void findMovieById_whenMovieDoesNotExist_shouldReturnNotFound() throws Exception {
+
+        Long nonExistentMovieId = 99L;
+
+        when(movieService.findById(nonExistentMovieId)).thenThrow(new EntityNotFoundException("Não foi encontrado nenhum filme com o ID " + nonExistentMovieId));
+
+        mockMvc.perform(get("/api/movies/{id}", nonExistentMovieId))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> assertThat(result.getResolvedException())
+                        .isInstanceOf(EntityNotFoundException.class) // Verifica o tipo
+                        .hasMessage("Não foi encontrado nenhum filme com o ID " + nonExistentMovieId));
     }
 }

@@ -31,6 +31,7 @@ public class MovieRepositoryTest {
         Screening screening = new Screening();
         screening.setScreeningDate(LocalDate.of(2025,10,26));
         screening.setMovie(movie);
+        screening.setSession("Sessão da Tarde");
 
         movie.getScreeningHistory().add(screening);
 

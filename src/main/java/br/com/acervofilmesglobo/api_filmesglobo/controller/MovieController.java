@@ -1,5 +1,6 @@
 package br.com.acervofilmesglobo.api_filmesglobo.controller;
 
+import br.com.acervofilmesglobo.api_filmesglobo.dto.MovieDetailDTO;
 import br.com.acervofilmesglobo.api_filmesglobo.dto.MovieResponseDTO;
 import br.com.acervofilmesglobo.api_filmesglobo.dto.ScreeningLoadDTO;
 import br.com.acervofilmesglobo.api_filmesglobo.dto.ScreeningResponseDTO;
@@ -46,5 +47,11 @@ public class MovieController {
     public ResponseEntity<List<ScreeningResponseDTO>> listScreeningsByMovie(@PathVariable Long id){
         List<ScreeningResponseDTO> screenings = movieService.findScreeningsByMovieId(id);
         return ResponseEntity.ok(screenings);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<MovieDetailDTO> findMovieById(@PathVariable Long id){
+        MovieDetailDTO movieDetailDTO = movieService.findById(id);
+        return ResponseEntity.ok(movieDetailDTO);
     }
 }

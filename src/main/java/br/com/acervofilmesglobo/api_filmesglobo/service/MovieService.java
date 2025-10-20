@@ -1,5 +1,6 @@
 package br.com.acervofilmesglobo.api_filmesglobo.service;
 
+import br.com.acervofilmesglobo.api_filmesglobo.dto.MovieDetailDTO;
 import br.com.acervofilmesglobo.api_filmesglobo.dto.MovieResponseDTO;
 import br.com.acervofilmesglobo.api_filmesglobo.dto.ScreeningLoadDTO;
 import br.com.acervofilmesglobo.api_filmesglobo.dto.ScreeningResponseDTO;
@@ -69,5 +70,13 @@ public class MovieService {
                 .map(ScreeningResponseDTO::new)
                 .collect(Collectors.toList());
 
+    }
+
+    @Transactional(readOnly = true)
+    public MovieDetailDTO findById(Long movieId){
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(()->new EntityNotFoundException("Filme não encontrado ocm o ID: " + movieId));
+
+        return new MovieDetailDTO(movie);
     }
 }
